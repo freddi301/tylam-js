@@ -94,6 +94,12 @@ describe('curryCheck', function(){
       curryCheck(Array, Number, String)(a=>n=>a.length)([1])(1)
     ).to.throw()
   })
+  it('(String->Number)->Number->Number', function(){
+    const fun = curryCheck(curryCheck(String, Number), Number, Number)
+      (f=>n=>f("hello")+n)
+    expect(fun(s=>s.length)(3)).to.equal(8)
+    expect(_=>fun(s=>s)(3)).to.throw()
+  })
 })
 
 describe('fitInNested', function(){

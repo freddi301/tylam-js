@@ -40,8 +40,14 @@ const checkCurry = checks => f =>
     checkCurry(checks.slice(1))(checkIn(checks[0])(f)(a)) :
     compose(checkIn(checks[0]),checkOut(checks[1]))(f)(a)
 
-const curryCheck = function curryCheck(){ return f =>
-  checkCurry(Array.prototype.slice.call(arguments).map(t=>fitInNested(t)))(f)
+const CURRY_CHECK = Symbol('curryCheck')
+const curryCheck = function curryCheck(){
+  const r = f => checkCurry(
+    Array.prototype.slice.call(arguments)
+    .map(t=>t[CURRY_CHECK]?t:fitInNested(t))
+  )(f)
+  r[CURRY_CHECK] = true
+  return r
 }
 
 module.exports = {fitIn, compose, checkIn, checkOut, check, curryCheck, fitInNested}

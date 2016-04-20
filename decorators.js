@@ -26,10 +26,10 @@ const compose = function(){ return arg =>
 
 const throwe = e => {throw e}
 
-const checkIn = check => f =>
+const checkIn = check => f => !(f instanceof Function) ? throwe(f) :
   a => check(a) ? f(a) : throwe(new Error(a))
 
-const checkOut = check => f =>
+const checkOut = check => f => !(f instanceof Function) ? throwe(f) :
   a => { const r = f(a); return check(r) ? r : throwe(new Error(r)) }
 
 const check = (inT, ouT) =>
@@ -42,11 +42,9 @@ const checkCurry = checks => f =>
 
 const CURRY_CHECK = Symbol('curryCheck')
 const curryCheck = function curryCheck(){
-  const r = f => checkCurry(
-    Array.prototype.slice.call(arguments)
-    .map(t=>t[CURRY_CHECK]?t:fitInNested(t))
-  )(f)
-  r[CURRY_CHECK] = true
+  const args = Array.from(arguments)
+  const r = f => checkCurry(args.map(t=>t[CURRY_CHECK]?t:fitInNested(t)))(f)
+  r[CURRY_CHECK] = args
   return r
 }
 

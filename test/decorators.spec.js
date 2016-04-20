@@ -7,6 +7,7 @@ const deco = require('../decorators'),
   compose = deco.compose,
   check = deco.check,
   curryCheck = deco.curryCheck,
+  fitInNested = deco.fitInNested,
   assert = require('chai').assert,
   expect = require('chai').expect
 
@@ -91,6 +92,25 @@ describe('curryCheck', function(){
     expect(curried([1,2])(3)).to.equal("1,2 3 hello")
     expect(()=>
       curryCheck(Array, Number, String)(a=>n=>a.length)([1])(1)
+    ).to.throw()
+  })
+})
+
+describe('fitInNested', function(){
+  it('ok', function(){
+    curryCheck([{x: String}],{a: Number, b: [String]})(_=>({a:1, b:["c"]}))([{x: "hola"}])
+    expect(()=>
+      curryCheck([{x: String}],{a: Number, b: [String]})(_=>({a:1, b:["c"]}))({x: "hola"})
+    ).to.throw()
+    expect(()=>
+      curryCheck([{x: String}],{a: Number, b: [String]})(_=>([]))([{x: "hola"}])
+    ).to.throw()
+    assert(fitInNested([Number])([1]))
+    assert(!fitInNested([Number])(["hello"]))
+    assert(fitInNested({a: Number})({a:1}))
+    assert(!fitInNested({a: Number})({a:"hello"}))
+    expect(()=>
+      curryCheck([{x: String}],{a: Number, b: [String]})(_=>({a:1, b:["c"]}))([{x: 4}])
     ).to.throw()
   })
 })

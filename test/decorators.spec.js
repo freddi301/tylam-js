@@ -20,7 +20,7 @@ B = Object.create(A),
 b = Object.create(B)
 
 describe('fitIn', function(){
-  it('fitIn("number")(4)', function(){ assert(fitIn("number")(4)) })
+  it('fitIn("number")(4)', function(){ assert(fitIn(Number)(4)) })
   it('fitIn(X)(y)', function(){ assert(fitIn(X)(y)) })
   it('fitIn(A)(b)', function(){ assert(fitIn(A)(b)) })
 })
@@ -38,7 +38,7 @@ describe('checkIn', function(){
 })
 
 describe('checkOut', function(){
-  const num = checkOut(fitIn("number"))(_=>_)
+  const num = checkOut(fitIn(Number))(_=>_)
   it('num(4)', function(){ num(4) })
   it('num("4")', function(){ expect(_=>num("4")).to.throw() })
 })
@@ -46,10 +46,10 @@ describe('checkOut', function(){
 describe('checkOut+checkIn', function(){
   const stringLength_ = s=>s.length,
   stringLengthIn =
-    checkIn(fitIn("string"))
+    checkIn(fitIn(String))
     (stringLength_),
   stringLengthOut =
-    checkOut(fitIn("number"))
+    checkOut(fitIn(Number))
     (stringLength_)
 
   it('stringLength("hello")/In/Out', function(){
@@ -61,8 +61,8 @@ describe('checkOut+checkIn', function(){
 
   it('stringLength("hello")', function(){
     const stringLength =
-      checkIn(fitIn('string'))(
-      checkOut(fitIn('number'))(
+      checkIn(fitIn(String))(
+      checkOut(fitIn(Number))(
         s=>s.length
       ))
     expect(stringLength("hello")).to.equal(5)
@@ -70,7 +70,7 @@ describe('checkOut+checkIn', function(){
 
   it('stringLength2("hello")', function(){
     const stringLength2 =
-      compose(checkIn(fitIn('string')),(checkOut(fitIn('number'))))
+      compose(checkIn(fitIn(String),(checkOut(fitIn(Number)))))
       (s=>s.length)
     expect(stringLength2("hello")).to.equal(5)
   })
@@ -80,7 +80,7 @@ describe('checkOut+checkIn', function(){
 describe('check', function(){
   it('stringLength3("hello")', function(){
     const stringLength2 =
-      check('string','number')
+      check(String, Number)
       (s=>s.length)
     expect(stringLength2("hello")).to.equal(5)
   })

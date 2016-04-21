@@ -1,13 +1,9 @@
 "use strict"
 
-const ORIGINAL_FUNCTION = Symbol(),
-  SELF = Symbol(),
-  ARGUMENT_TYPES = Symbol(),
-  RETURN_TYPE = Symbol()
+const FUNCTION_META = Symbol(),
+  IS_CHECKER = Symbol()
 
 const throwe = e => {throw e}
-
-function Any(){} //any type holds
 
 const fitIn = (blueprint, object) => { if(blueprint === null) return false; switch (typeof blueprint) {
   case 'object': return blueprint.isPrototypeOf(object);
@@ -15,7 +11,6 @@ const fitIn = (blueprint, object) => { if(blueprint === null) return false; swit
     case String: return typeof object === 'string';
     case Number: return typeof object === 'number';
     case Boolean: return typeof object === 'boolean';
-    case Any: return true;
     default: return object instanceof blueprint;
   }
   default: throwe({msg: 'invalid blueprint', blueprint})
@@ -33,23 +28,28 @@ const getFit = value => { if (value === null) return null; switch(typeof value){
   default: throwe({msg: 'cannot get type of', value})
 }}
 
-const checkInOut = (argumentType, returnType) => (f, self) => {
-  const argumentTypes = argumentType instanceof Array ? argumentType : [argumentType];
-  if (! f instanceof Function) throwe({msg: 'function needed', f})
-  const decorated = function (){
-    const args = Array.from(arguments)
-    const mismatched = argumentTypes.find((b, i)=>!fitIn(b, args[i]))
-    if (mismatched) throwe({msg: 'invalid arguments', expectedTypes: argumentTypes, gotTypes: args.map(getFit), mismatched, gotValues: args, f, self });
-    const returnedValue = f.apply(self, args)
-    if (!fitIn(returnType, returnedValue)) throwe({msg: 'invalid return value', returnType, returnedValue})
-    return returnedValue
+const checkInOut = (argumentType, returnType) => {
+  const checker = (f, self) => {
+    const argumentTypes = argumentType instanceof Array ? argumentType : [argumentType];
+    if (! f instanceof Function) throwe({msg: 'function needed', f})
+    const decorated = function (){
+      const args = Array.from(arguments)
+      if (args.length !== argumentTypes.length) throwe({msg: 'argument count does not match', expected: argumentTypes.length, got: args.length});
+      const mismatched = argumentTypes.find((b, i)=>!fitIn(b, args[i]))
+      if (mismatched) throwe({msg: 'invalid arguments', expectedTypes: argumentTypes, gotTypes: args.map(getFit), mismatched, gotValues: args, f, self });
+      const returnedValue = f.apply(self || this, args)
+      if (returnType[IS_CHECKER]) {
+        return returnType(returnedValue, self)
+      }
+      if (!fitIn(returnType, returnedValue)) throwe({msg: 'invalid return value', returnType, returnedValue})
+      return returnedValue
+    }
+    decorated[FUNCTION_META] = {argumentTypes, returnType, self, f}
+    if (f.name) Object.defineProperty(decorated, 'name', { value: f.name });
+    return decorated
   }
-  decorated[ARGUMENT_TYPES] = argumentTypes
-  decorated[RETURN_TYPE] = returnType
-  decorated[ORIGINAL_FUNCTION] = f
-  decorated[SELF] = self
-  if (f.name) Object.defineProperty(decorated, 'name', { value: f.name });
-  return decorated
+  checker[IS_CHECKER] = true
+  return checker
 }
 
 module.exports = {getFit, checkInOut}

@@ -16,4 +16,16 @@ describe('checkInOut', function(){
     expect(numberEqualString(4,'4')).to.equal(true)
     expect(_=>numberEqualString(4,4)).to.throw()
   })
+  it('curry', function(){
+    // Number->String->Boolean
+    const nsb = t.checkInOut(Number, t.checkInOut(String, Boolean)),
+      f = nsb(n=>s=>n==s),
+      f2 = nsb(n=>s=>s)
+    expect(f(4)("4")).to.equal(true)
+    expect(f(4)("5")).to.equal(false)
+    expect(_=>f("4")("4")).to.throw()
+    expect(_=>f(4)(4)).to.throw()
+    expect(_=>f2(4)("4")).to.throw()
+    expect(_=>f2(4,"4")).to.throw()
+  })
 })

@@ -1,4 +1,4 @@
-const Type = require('../'),
+const Type = require('../type'),
   expect = require('chai').expect,
   ok = v => "ok",
   err = v => "err"

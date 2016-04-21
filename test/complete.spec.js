@@ -28,4 +28,18 @@ describe('checkInOut', function(){
     expect(_=>f2(4)("4")).to.throw()
     expect(_=>f2(4,"4")).to.throw()
   })
+  it('flatCurry', function(){
+    // Number->String->Boolean
+    const nsb = t.checkInOutFlatCurry(Number, String, Date, Boolean),
+      f = nsb(n=>s=>d=>n==s),
+      f2 = nsb(n=>s=>d=>s),
+      d = new Date
+    expect(f(4)("4")(d)).to.equal(true)
+    expect(f(4)("5")(d)).to.equal(false)
+    expect(_=>f("4")("4")(d)).to.throw()
+    expect(_=>f(4)("4")(5)).to.throw()
+    expect(_=>f(4)(4)(d)).to.throw()
+    expect(_=>f2(4)("4")(d)).to.throw()
+    expect(_=>f2(4,"4")(d)).to.throw()
+  })
 })

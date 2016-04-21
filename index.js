@@ -52,4 +52,15 @@ const checkInOut = (argumentType, returnType) => {
   return checker
 }
 
-module.exports = {getFit, checkInOut}
+const checkInOutFlatCurry = function(){
+  const args = Array.from(arguments),
+    recBind = n => n == args.length-1 ? args[n] : checkInOut(args[n], recBind(n+1))
+  switch(args.length){
+    case 0:
+    case 1: throw {msg: 'argument and return needed'};
+    case 2: return checkInOut(args[0], args[1]);
+    default: return recBind(0)
+  }
+}
+
+module.exports = {getFit, fitIn, checkInOut, checkInOutFlatCurry}

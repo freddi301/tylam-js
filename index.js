@@ -3,7 +3,7 @@
 const FUNCTION_META = Symbol(),
   IS_CHECKER = Symbol()
 
-const throwe = e => {throw e}
+const throwe = e => {throw new Error(JSON.stringify(e, ((k,v)=>v instanceof Function ? v.toString() : v), 2))}
 
 const fitIn = (blueprint, object) => { if(blueprint === null) return false; switch (typeof blueprint) {
   case 'object': return blueprint.isPrototypeOf(object);
@@ -32,12 +32,13 @@ const checkInOut = (argumentType, returnType) => {
   const argumentTypes = argumentType instanceof Array ? argumentType : [argumentType];
   const checker = (f, self) => {
     if (! f instanceof Function) throwe({msg: 'function needed', f})
+    if (f[FUNCTION_META]) { if(canHoldType(checker, f)) return f; else throwe({msg: 'cannot hold annotated function'}) }
     const decorated = function (){
       const args = Array.from(arguments)
       if (args.length !== argumentTypes.length) throwe({msg: 'argument count does not match', expected: argumentTypes.length, got: args.length});
-      const mismatched = argumentTypes.find((b, i)=>!fitIn(b, args[i]))
+      const mismatched = argumentTypes.find((b, i)=>b[IS_CHECKER]?!args[i] instanceof Function:!fitIn(b, args[i]))
       if (mismatched) throwe({msg: 'invalid arguments', expectedTypes: argumentTypes, gotTypes: args.map(getFit), mismatched, gotValues: args, f, self });
-      const returnedValue = f.apply(self || this, args)
+      const returnedValue = f.apply(self || this, argumentTypes.map((b, i)=> b[IS_CHECKER] ? b(args[i], self) : args[i]))
       if (returnType[IS_CHECKER]) {
         return returnType(returnedValue, self)
       }
@@ -66,9 +67,9 @@ const checkInOutFlatCurry = function(){
 
 const canHoldType = (major, minor) => {
   if (major === minor) return true;
-  if (major[IS_CHECKER] !== minor[IS_CHECKER]) return false;
-  if (!major[IS_CHECKER] && major.isPrototypeOf(minor)) return true;
-  if (major[IS_CHECKER] && minor[IS_CHECKER]) return canDecoratedHold(major[FUNCTION_META], minor[FUNCTION_META])
+  if (!!major[FUNCTION_META] !== !!minor[FUNCTION_META]) return false;
+  if (!major[FUNCTION_META] && major.isPrototypeOf(minor)) return true;
+  if (major[FUNCTION_META] && minor[FUNCTION_META]) return canDecoratedHold(major[FUNCTION_META], minor[FUNCTION_META])
   return false
 }
 

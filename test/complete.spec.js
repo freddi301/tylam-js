@@ -69,10 +69,17 @@ describe('canHoldType', function(){
     class A {}; class B extends A {};
     const X = {}, Y = Object.create(X), l = t.checkInOutFlatCurry,
       fmap1 = l(l(A,X), A, X),
-      fmap2 = l(l(B,Y), B, Y);
+      fmap2 = l(l(B,Y), B, Y),
+      fmap3 = fmap2(f=>m=>f(m));
     expect(t.canHoldType(fmap1, fmap1)).to.equal(true)
     expect(t.canHoldType(fmap2, fmap2)).to.equal(true)
     expect(t.canHoldType(fmap1, fmap2)).to.equal(true)
     expect(t.canHoldType(fmap2, fmap1)).to.equal(false)
+    expect(t.canHoldType(fmap1, fmap3)).to.equal(true)
+    expect(t.canHoldType(fmap2, fmap3)).to.equal(true)
+    fmap3(l(B,Y)(b=>Object.create(Y)))(new B)
+    expect(_=>fmap3(l(B,A)(b=>Object.create(Y)))(new B)).to.throw()
+    expect(_=>fmap3(b=>Object.create(Y))(new A)).to.throw()
+    expect(_=>fmap3(b=>Object.create(X))(new B)).to.throw()
   })
 })

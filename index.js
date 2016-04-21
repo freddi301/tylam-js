@@ -29,8 +29,8 @@ const getFit = value => { if (value === null) return null; switch(typeof value){
 }}
 
 const checkInOut = (argumentType, returnType) => {
+  const argumentTypes = argumentType instanceof Array ? argumentType : [argumentType];
   const checker = (f, self) => {
-    const argumentTypes = argumentType instanceof Array ? argumentType : [argumentType];
     if (! f instanceof Function) throwe({msg: 'function needed', f})
     const decorated = function (){
       const args = Array.from(arguments)
@@ -49,6 +49,7 @@ const checkInOut = (argumentType, returnType) => {
     return decorated
   }
   checker[IS_CHECKER] = true
+  checker[FUNCTION_META] = {argumentTypes, returnType}
   return checker
 }
 
@@ -63,4 +64,20 @@ const checkInOutFlatCurry = function(){
   }
 }
 
-module.exports = {getFit, fitIn, checkInOut, checkInOutFlatCurry}
+const canHoldType = (major, minor) => {
+  if (major === minor) return true;
+  if (major[IS_CHECKER] !== minor[IS_CHECKER]) return false;
+  if (!major[IS_CHECKER] && major.isPrototypeOf(minor)) return true;
+  if (major[IS_CHECKER] && minor[IS_CHECKER]) return canDecoratedHold(major[FUNCTION_META], minor[FUNCTION_META])
+  return false
+}
+
+const canDecoratedHold = (expected, got) => {
+  if (expected.argumentTypes.length !== got.argumentTypes.length) return false
+  if (!canHoldType(expected.returnType, got.returnType)) return false
+  const mismatchedArg = expected.argumentTypes.find((eat, i)=>!canHoldType(eat, got.argumentTypes[i]))
+  if (mismatchedArg) return false
+  return true
+}
+
+module.exports = {getFit, fitIn, checkInOut, checkInOutFlatCurry, canHoldType}

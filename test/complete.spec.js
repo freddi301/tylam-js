@@ -1,3 +1,5 @@
+"use strict"
+
 const t = require('../'),
   expect = require('chai').expect
 
@@ -41,5 +43,36 @@ describe('checkInOut', function(){
     expect(_=>f(4)(4)(d)).to.throw()
     expect(_=>f2(4)("4")(d)).to.throw()
     expect(_=>f2(4,"4")(d)).to.throw()
+  })
+})
+
+describe('canHoldType', function(){
+  it('simple', function(){
+    expect(t.canHoldType(Object, Object)).to.equal(true)
+    expect(t.canHoldType(Array, Object)).to.equal(false)
+    class A {}; class B extends A {};
+    expect(t.canHoldType(A, B)).to.equal(true)
+    expect(t.canHoldType(B, A)).to.equal(false)
+    const X = {}, Y = Object.create(X);
+    expect(t.canHoldType(X, Y)).to.equal(true)
+    expect(t.canHoldType(Y, X)).to.equal(false)
+  })
+  it('with checkers', function(){
+    const String_Number = t.checkInOut(String, Number),
+      StringNumber_Boolean = t.checkInOut([String, Number], Boolean),
+      StringNumber_$String_Number$ = t.checkInOutFlatCurry([String, Number], String_Number)
+    expect(t.canHoldType(String_Number, String_Number)).to.equal(true)
+    expect(t.canHoldType(StringNumber_Boolean, StringNumber_Boolean)).to.equal(true)
+    expect(t.canHoldType(StringNumber_$String_Number$, StringNumber_$String_Number$)).to.equal(true)
+  })
+  it('functor', function(){
+    class A {}; class B extends A {};
+    const X = {}, Y = Object.create(X), l = t.checkInOutFlatCurry,
+      fmap1 = l(l(A,X), A, X),
+      fmap2 = l(l(B,Y), B, Y);
+    expect(t.canHoldType(fmap1, fmap1)).to.equal(true)
+    expect(t.canHoldType(fmap2, fmap2)).to.equal(true)
+    expect(t.canHoldType(fmap1, fmap2)).to.equal(true)
+    expect(t.canHoldType(fmap2, fmap1)).to.equal(false)
   })
 })

@@ -76,10 +76,35 @@ describe('canHoldType', function(){
     expect(t.canHoldType(fmap1, fmap2)).to.equal(true)
     expect(t.canHoldType(fmap2, fmap1)).to.equal(false)
     expect(t.canHoldType(fmap1, fmap3)).to.equal(true)
-    expect(t.canHoldType(fmap2, fmap3)).to.equal(true)
+    expect(t.canHoldType(fmap2, fmap3)).to.equal(true);
+    expect(t.canHoldType(fmap1(f=>m=>f(m)), fmap2(f=>m=>f(m))(x=>x))).to.equal(false)
     fmap3(l(B,Y)(b=>Object.create(Y)))(new B)
     expect(_=>fmap3(l(B,A)(b=>Object.create(Y)))(new B)).to.throw()
     expect(_=>fmap3(b=>Object.create(Y))(new A)).to.throw()
     expect(_=>fmap3(b=>Object.create(X))(new B)).to.throw()
+  })
+  it('join', function(){
+    class A {}; class B extends A {};
+    class X {}; class Y extends X {};
+    const l = t.checkInOutFlatCurry,
+      aA = l(A, A),
+      aB = l(B, B),
+      aX = l(X, X),
+      aY = l(Y, Y),
+      fA = aA(a=>a),
+      fB = aB(b=>b),
+      aBY = l(B,Y,Y),
+      fBY = aBY(b=>y=>y)
+    expect(t.canHoldType(aA, aB)).to.equal(true)
+    expect(t.canHoldType(aA, aX)).to.equal(false)
+    expect(t.canHoldType(aA, fA)).to.equal(true)
+    expect(t.canHoldType(aA, fB)).to.equal(true)
+    expect(t.canHoldType(aB, fB)).to.equal(true)
+    expect(t.canHoldType(aB, fA)).to.equal(false)
+    expect(t.canHoldType(aX, aBY)).to.equal(false)
+    expect(t.canHoldType(aY, aBY)).to.equal(false)
+    expect(t.canHoldType(aX, fBY(new B))).to.equal(true)
+    expect(t.canHoldType(aY, fBY(new B))).to.equal(true)
+    expect(t.canHoldType(aA, fBY(new B))).to.equal(false)
   })
 })

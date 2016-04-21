@@ -1,11 +1,13 @@
+"use strict"
+
 const ORIGINAL_FUNCTION = Symbol(),
   SELF = Symbol(),
-  ARGUMENT_TYPES = Symbol()
+  ARGUMENT_TYPES = Symbol(),
   RETURN_TYPE = Symbol()
 
 const throwe = e => {throw e}
 
-function Any(){} //any value holds
+function Any(){} //any type holds
 
 const fitIn = (blueprint, object) => { if(blueprint === null) return false; switch (typeof blueprint) {
   case 'object': return blueprint.isPrototypeOf(object);
@@ -32,13 +34,13 @@ const getFit = value => { if (value === null) return null; switch(typeof value){
 }}
 
 const checkInOut = (argumentType, returnType) => (f, self) => {
-  argumentTypes = argumentType instanceof Array ? argumentType : [argumentType]
+  const argumentTypes = argumentType instanceof Array ? argumentType : [argumentType];
   if (! f instanceof Function) throwe({msg: 'function needed', f})
   const decorated = function (){
     const args = Array.from(arguments)
     const mismatched = argumentTypes.find((b, i)=>!fitIn(b, args[i]))
     if (mismatched) throwe({msg: 'invalid arguments', expectedTypes: argumentTypes, gotTypes: args.map(getFit), mismatched, gotValues: args, f, self });
-    const returnedValue = f.apply(self || this, args)
+    const returnedValue = f.apply(self, args)
     if (!fitIn(returnType, returnedValue)) throwe({msg: 'invalid return value', returnType, returnedValue})
     return returnedValue
   }

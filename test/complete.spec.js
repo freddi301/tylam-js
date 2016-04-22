@@ -117,4 +117,17 @@ describe('generic', function(){
     expect(l('a','b','a','b')(a1=>b1=>a2=>a1+b1+a2)(1)('plus')(2)).to.equal('1plus2')
     expect(_=>l('a','b','a','b')(a1=>b1=>a2=>a1)(1)('plus')(2)).to.throw()
   })
+  it('nested', function(){
+    const li = t.checkInOutFlatCurryInfere
+    expect(li('a','a','a')()(a1=>a2=>a1+a2)(1)(2)).to.equal(3)
+    expect(_=>li('a','a','a')()(a1=>a2=>a1+a2)(1)("c")).to.throw()
+    expect(li('a','b','a','b')()(a1=>b1=>a2=>a1+b1+a2)(1)('plus')(2)).to.equal('1plus2')
+    expect(_=>li('a','b','a','b')()(a1=>b1=>a2=>a1)(1)('plus')(2)).to.throw()
+    const fmap = t.genericFunction
+      (li(li('a','b'),'a','b'))
+      (f=>a=>f(a))
+    expect(fmap(s=>s.length)("hello")).to.equal(5)
+    expect(fmap(s=>s.length)([1,2,3,4,5])).to.equal(5)
+    expect(fmap(s=>s)("hello")).to.equal("hello")
+  })
 })

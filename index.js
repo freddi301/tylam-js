@@ -1,7 +1,8 @@
 "use strict"
 
 const FUNCTION_META = Symbol(),
-  IS_CHECKER = Symbol()
+  IS_CHECKER = Symbol(),
+  NEED_INFERER = Symbol()
 
 const throwe = e => {throw new Error(JSON.stringify(e, ((k,v)=>v instanceof Function ? v.toString() : v), 2))}
 
@@ -31,7 +32,8 @@ const getFit = value => { if (value === null) return null; switch(typeof value){
 const isGeneric = t => typeof t === 'string'
 
 const checkInOut = (argumentType, returnType, inferer) => {
-  const argumentTypes = argumentType instanceof Array ? argumentType : [argumentType];
+  const argumentTypes = (argumentType instanceof Array ? argumentType : [argumentType]).map(a=>a[NEED_INFERER]?a(inferer):a)
+  returnType = returnType[NEED_INFERER]?returnType(inferer): returnType
   const checker = (f, self) => {
     if (! f instanceof Function) throwe({msg: 'function needed', f})
     if (f[FUNCTION_META]) { if(canHoldType(checker, f)) return f; else throwe({msg: 'cannot hold annotated function'}) }
@@ -68,9 +70,22 @@ const checkInOutFlatCurry = function(){
   switch(args.length){
     case 0:
     case 1: throw {msg: 'argument and return needed'};
-    case 2: return checkInOut(args[0], args[1], inf);
     default: return recBind(0)
   }
+}
+
+const checkInOutFlatCurryInfere = function(){
+  const args = Array.from(arguments)
+  const need = inf => { inf = inf || Inferer({})
+    const  recBind = n => n == args.length-1 ? args[n] : checkInOut(args[n], recBind(n+1), inf)
+    switch(args.length){
+      case 0:
+      case 1: throw {msg: 'argument and return needed'};
+      default: return recBind(0)
+    }
+  }
+  need[NEED_INFERER] = true
+  return need
 }
 
 const canHoldType = (major, minor) => {
@@ -89,4 +104,7 @@ const canDecoratedHold = (expected, got) => {
   return true
 }
 
-module.exports = {getFit, fitIn, checkInOut, checkInOutFlatCurry, canHoldType}
+const genericFunction = type => implementation =>
+  function(){return type()(implementation).apply(this, arguments)}
+
+module.exports = {getFit, fitIn, checkInOut, checkInOutFlatCurry, canHoldType, checkInOutFlatCurryInfere, genericFunction}

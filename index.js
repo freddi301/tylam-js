@@ -28,7 +28,9 @@ const getFit = value => { if (value === null) return null; switch(typeof value){
   default: throwe({msg: 'cannot get type of', value})
 }}
 
-const checkInOut = (argumentType, returnType) => {
+const isGeneric = t => typeof t === 'string'
+
+const checkInOut = (argumentType, returnType, inferer) => {
   const argumentTypes = argumentType instanceof Array ? argumentType : [argumentType];
   const checker = (f, self) => {
     if (! f instanceof Function) throwe({msg: 'function needed', f})
@@ -36,12 +38,11 @@ const checkInOut = (argumentType, returnType) => {
     const decorated = function (){
       const args = Array.from(arguments)
       if (args.length !== argumentTypes.length) throwe({msg: 'argument count does not match', expected: argumentTypes.length, got: args.length});
-      const mismatched = argumentTypes.find((b, i)=>b[IS_CHECKER]?!args[i] instanceof Function:!fitIn(b, args[i]))
+      const mismatched = argumentTypes.find((b, i)=>b[IS_CHECKER]?!args[i] instanceof Function:!fitIn(isGeneric(b)?inferer(b,args[i]):b, args[i]))
       if (mismatched) throwe({msg: 'invalid arguments', expectedTypes: argumentTypes, gotTypes: args.map(getFit), mismatched, gotValues: args, f, self });
       const returnedValue = f.apply(self || this, argumentTypes.map((b, i)=> b[IS_CHECKER] ? b(args[i], self) : args[i]))
-      if (returnType[IS_CHECKER]) {
-        return returnType(returnedValue, self)
-      }
+      if (isGeneric(returnType)) return (inferer(returnType, returnedValue), returnedValue)
+      if (returnType[IS_CHECKER]) return returnType(returnedValue, self)
       if (!fitIn(returnType, returnedValue)) throwe({msg: 'invalid return value', returnType, returnedValue})
       return returnedValue
     }
@@ -54,13 +55,20 @@ const checkInOut = (argumentType, returnType) => {
   return checker
 }
 
+const Inferer = (dict)=>
+  (name, value) =>
+    dict.hasOwnProperty(name) ?
+      (fitIn(dict[name], value)?dict[name]:throwe({msg: "invalid (ifered) type", expected: dict[name], got:getFit(value), value})):
+      dict[name] = getFit(value)
+
 const checkInOutFlatCurry = function(){
   const args = Array.from(arguments),
-    recBind = n => n == args.length-1 ? args[n] : checkInOut(args[n], recBind(n+1))
+    inf = Inferer({}),
+    recBind = n => n == args.length-1 ? args[n] : checkInOut(args[n], recBind(n+1), inf)
   switch(args.length){
     case 0:
     case 1: throw {msg: 'argument and return needed'};
-    case 2: return checkInOut(args[0], args[1]);
+    case 2: return checkInOut(args[0], args[1], inf);
     default: return recBind(0)
   }
 }

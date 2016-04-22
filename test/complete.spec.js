@@ -108,3 +108,13 @@ describe('canHoldType', function(){
     expect(t.canHoldType(aA, fBY(new B))).to.equal(false)
   })
 })
+
+describe('generic', function(){
+  it('simple', function(){
+    const l = t.checkInOutFlatCurry
+    expect(l('a','a','a')(a1=>a2=>a1+a2)(1)(2)).to.equal(3)
+    expect(_=>l('a','a','a')(a1=>a2=>a1+a2)(1)("c")).to.throw()
+    expect(l('a','b','a','b')(a1=>b1=>a2=>a1+b1+a2)(1)('plus')(2)).to.equal('1plus2')
+    expect(_=>l('a','b','a','b')(a1=>b1=>a2=>a1)(1)('plus')(2)).to.throw()
+  })
+})

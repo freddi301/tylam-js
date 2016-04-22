@@ -107,13 +107,31 @@ const canDecoratedHold = (expected, got) => {
 const genericFunction = type => implementation =>
   function(){return type()(implementation).apply(this, arguments)}
 
+const getSuperConstructor = o => Object.getPrototypeOf(o.constructor)
+
+const getConstructorChain = c => {
+  const constructors = []
+  while (c !== Function.prototype) {
+    constructors.push(c)
+    c = getSuperConstructor(c.prototype)
+  }
+  constructors.push(Object)
+  return constructors
+}
+
 const genericClass = klass => {
-  const classMap = new Map();
-  return function(parameter){
+  const classMap = new Map()
+  function add(parameter){
     const existing = classMap.get(parameter)
     if (existing) return existing
-    const newClass = klass(parameter);
-    classMap.set(parameter, newClass); return newClass
+    const newClass = klass(parameter, add(getConstructorChain(parameter)[1]))
+    classMap.set(parameter, newClass)
+    return newClass
+  }
+  classMap.set(Object, klass(Object, Object))
+  return function(parameter){
+    getConstructorChain(parameter).reverse().map(add)
+    return add(parameter)
   }
 }
 

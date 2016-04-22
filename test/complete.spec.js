@@ -133,10 +133,17 @@ describe('generic', function(){
 })
 
 describe('genericClass', function(){
-  const A = t.genericClass(k=>class A{getGeneric(){return k}})
+  const A = t.genericClass((k,s)=>class A extends s {getGeneric(){return k}})
   expect((new (A(Number))).getGeneric()).to.equal(Number)
   expect((new (A(String))).getGeneric()).to.equal(String)
   expect((new (A(Number))) instanceof A(Number)).to.equal(true)
   expect((new (A(String))) instanceof A(String)).to.equal(true)
   expect((new (A(Number))) instanceof A(String)).to.equal(false)
+  class X{}; class Y extends X{};
+  expect((new (A(X))).getGeneric()).to.equal(X)
+  expect((new (A(Y))).getGeneric()).to.equal(Y)
+  expect((new (A(X))) instanceof A(X)).to.equal(true)
+  expect((new (A(Y))) instanceof A(Y)).to.equal(true)
+  expect((new (A(X))) instanceof A(Y)).to.equal(false)
+  expect((new (A(Y))) instanceof A(X)).to.equal(true)
 })

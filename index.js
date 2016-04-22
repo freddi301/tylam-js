@@ -107,4 +107,14 @@ const canDecoratedHold = (expected, got) => {
 const genericFunction = type => implementation =>
   function(){return type()(implementation).apply(this, arguments)}
 
-module.exports = {getFit, fitIn, checkInOut, checkInOutFlatCurry, canHoldType, checkInOutFlatCurryInfere, genericFunction}
+const genericClass = klass => {
+  const classMap = new Map();
+  return function(parameter){
+    const existing = classMap.get(parameter)
+    if (existing) return existing
+    const newClass = klass(parameter);
+    classMap.set(parameter, newClass); return newClass
+  }
+}
+
+module.exports = {getFit, fitIn, checkInOut, checkInOutFlatCurry, canHoldType, checkInOutFlatCurryInfere, genericFunction, genericClass}

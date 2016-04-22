@@ -131,3 +131,12 @@ describe('generic', function(){
     expect(fmap(s=>s)("hello")).to.equal("hello")
   })
 })
+
+describe('genericClass', function(){
+  const A = t.genericClass(k=>class A{getGeneric(){return k}})
+  expect((new (A(Number))).getGeneric()).to.equal(Number)
+  expect((new (A(String))).getGeneric()).to.equal(String)
+  expect((new (A(Number))) instanceof A(Number)).to.equal(true)
+  expect((new (A(String))) instanceof A(String)).to.equal(true)
+  expect((new (A(Number))) instanceof A(String)).to.equal(false)
+})

@@ -1,6 +1,6 @@
 "use strict"
 
-const deco = require('../decorators'),
+const deco = require('../src/decorators'),
   fitIn = deco.fitIn,
   checkIn = deco.checkIn,
   checkOut = deco.checkOut,

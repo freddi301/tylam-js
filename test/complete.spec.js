@@ -1,6 +1,6 @@
 "use strict"
 
-const t = require('../'),
+const t = require('../src'),
   expect = require('chai').expect
 
 describe('checkInOut', function(){

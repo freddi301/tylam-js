@@ -2,39 +2,10 @@
 
 const FUNCTION_META = Symbol(),
   IS_CHECKER = Symbol(),
-  NEED_INFERER = Symbol()
-
-const throwe = e => {throw new Error(JSON.stringify(e, ((k,v)=>v instanceof Function ? v.toString() : v), 2))}
-
-const fitIn = (blueprint, object) => {
-  if(blueprint === null) return object === null;
-  switch (typeof blueprint) {
-    case 'object': return blueprint.isPrototypeOf(object);
-    case 'function': switch (blueprint) {
-      case String: return typeof object === 'string';
-      case Number: return typeof object === 'number';
-      case Boolean: return typeof object === 'boolean';
-      default: return object instanceof blueprint;
-    };
-    default: throwe({msg: 'invalid blueprint', blueprint})
-  }
-}
-
-const getFit = value => {
-  if (value === null) return null;
-  switch(typeof value){
-    case 'undefined': return void 0;
-    case 'string': return String;
-    case 'number': return Number;
-    case 'boolean': return Boolean;
-    case 'function': return Function;
-    case 'object': switch(value.constructor){
-      case Object: return Object.getPrototypeOf(value);
-      default: return value instanceof value.constructor ? value.constructor : throwe({msg: 'cannot get type of', value, reason: 'value is not instanceof value.constructor'});
-    };
-    default: throwe({msg: 'cannot get type of', value})
-  }
-}
+  NEED_INFERER = Symbol(),
+  fitIn = require('./fitIn'),
+  getFit = require('./getFit'),
+  throwe = require('./throwe')
 
 const isGeneric = t => typeof t === 'string'
 
@@ -114,17 +85,7 @@ const canDecoratedHold = (expected, got) => {
 const genericFunction = type => implementation =>
   function(){return type()(implementation).apply(this, arguments)}
 
-const getSuperConstructor = o => Object.getPrototypeOf(o.constructor)
-
-const getConstructorChain = c => {
-  const constructors = []
-  while (c !== Function.prototype) {
-    constructors.push(c)
-    c = getSuperConstructor(c.prototype)
-  }
-  constructors.push(Object)
-  return constructors
-}
+const getConstructorChain = require('./getConstructorChain')
 
 const genericClass = klass => {
   const classMap = new Map()

@@ -147,3 +147,13 @@ describe('genericClass', function(){
   expect((new (A(X))) instanceof A(Y)).to.equal(false)
   expect((new (A(Y))) instanceof A(X)).to.equal(true)
 })
+
+describe('multigenericClass', function(){
+  const A = t.genericClass((k,s)=>{
+    class At extends s {}
+    const r = t.genericClass((k2,s2)=> class A extends s2 {getG(){return [k,k2]}}, At)
+  })
+  it('',function(){
+    expect((new (A(Number)(String))) instanceof (A(Object)(String))).to.equal(true)
+  })
+})

@@ -5,7 +5,9 @@ const FUNCTION_META = Symbol(),
   NEED_INFERER = Symbol(),
   fitIn = require('./fitIn'),
   getFit = require('./getFit'),
-  throwe = require('./throwe')
+  throwe = require('./throwe'),
+  getConstructorChain = require('./getConstructorChain'),
+  genericClass = require('./genericClass')
 
 const isGeneric = t => typeof t === 'string'
 
@@ -84,9 +86,5 @@ const canDecoratedHold = (expected, got) => {
 
 const genericFunction = type => implementation =>
   function(){return type()(implementation).apply(this, arguments)}
-
-const getConstructorChain = require('./getConstructorChain')
-
-const genericClass = require('./genericClass')
 
 module.exports = {getFit, fitIn, checkInOut, checkInOutFlatCurry, canHoldType, checkInOutFlatCurryInfere, genericFunction, genericClass}

@@ -1,6 +1,6 @@
 {
   "name": "tylam-js",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Haskellish runtime tipecheck for JavaScript",
   "main": "index.js",
   "directories": {

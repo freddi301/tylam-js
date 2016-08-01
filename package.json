@@ -1,7 +1,7 @@
 {
   "name": "tylam-js",
   "version": "0.0.1",
-  "description": "",
+  "description": "Haskellish runtime tipecheck for JavaScript",
   "main": "index.js",
   "directories": {
     "test": "test"
@@ -17,5 +17,13 @@
   },
   "dependencies": {
     "lodash": "^4.11.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/freddi301/tylam-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/freddi301/tylam-js/issues"
+  },
+  "homepage": "https://github.com/freddi301/tylam-js#readme"
 }
